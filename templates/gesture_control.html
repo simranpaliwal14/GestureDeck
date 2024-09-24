@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gesture-Controlled Presentation</title>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f4f4f4;
+            font-family: Arial, sans-serif;
+        }
+
+        #slideContainer {
+            position: relative;
+            width: 1280px;
+            height: 720px;
+            background-color: #000;
+            border: 5px solid #ccc;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        #currentSlide {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        #annotationsCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+
+<div id="slideContainer">
+    <canvas id="annotationsCanvas"></canvas>
+    <img id="currentSlide" src="" alt="Slide">
+</div>
+
+<script>
+    const socket = io();
+    const currentSlide = document.getElementById('currentSlide');
+    const canvas = document.getElementById('annotationsCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Set canvas size to match the slide container
+    canvas.width = 1280;
+    canvas.height = 720;
+
+    let pointerVisible = false;
+
+    // Function to clear and draw annotations on the canvas
+    function drawAnnotations(annotations) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas before drawing
+        annotations.forEach(annotation => {
+            ctx.beginPath();
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = 'red';
+            for (let i = 0; i < annotation.length - 1; i++) {
+                ctx.moveTo(annotation[i][0], annotation[i][1]);
+                ctx.lineTo(annotation[i + 1][0], annotation[i + 1][1]);
+            }
+            ctx.stroke();
+        });
+    }
+
+    // Function to update the current slide and annotations
+    function updateSlide(slideImage, annotations) {
+        currentSlide.src = `/static/presentation_images/${slideImage}`;
+        drawAnnotations(annotations);
+    }
+
+    // Listen for the 'update_slide' event from the server
+    socket.on('update_slide', (data) => {
+        updateSlide(data.slide_image, data.annotations);
+    });
+
+    // Listen for gesture pointer movements (2 fingers for pointer)
+    socket.on('gesture_pointer', (data) => {
+        const { x, y, fingers, annotations } = data;
+
+        if (fingers === 2) { // Show pointer if two fingers are up
+            if (!pointerVisible) {
+                pointerVisible = true;
+            }
+
+            // Redraw annotations and show the pointer
+            ctx.clearRect(0, 0, canvas.width, canvas.height);  // Clear canvas
+            drawAnnotations(annotations);  // Redraw annotations
+
+            // Draw the gesture pointer as a blue circle on the canvas
+            ctx.beginPath();
+            ctx.arc(x, y, 10, 0, 2 * Math.PI);
+            ctx.fillStyle = 'blue';
+            ctx.fill();
+        } else {
+            // Hide pointer when fingers are not two
+            if (pointerVisible) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);  // Clear pointer
+                drawAnnotations(annotations);  // Keep annotations
+                pointerVisible = false;
+            }
+        }
+    });
+
+    // Listen for annotation (index finger for drawing)
+    socket.on('draw_annotation', (data) => {
+        const { x, y, fingers } = data;
+        if (fingers === 1) { // Draw with one finger (index finger)
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = 'red';
+            ctx.beginPath();  // Start new path
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        }
+    });
+
+    // Listen for erase (3 fingers for erasing)
+    socket.on('erase_annotation', (data) => {
+        const { fingers } = data;
+        if (fingers === 3) { // Erase with three fingers
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    });
+
+    // Fetch the current slide from the server at intervals (polling)
+    function fetchSlide() {
+        fetch('/current-slide')
+            .then(response => response.json())
+            .then(data => {
+                currentSlide.src = `/static/presentation_images/${data.slide}`;
+            });
+    }
+
+    // Polling the server every second to get the latest slide
+    setInterval(fetchSlide, 1000);
+</script>
+
+</body>
+</html>

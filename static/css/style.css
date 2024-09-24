@@ -1,0 +1,13 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+.slide-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+img {
+    width: 80%;
+    margin: 20px 0;
+}

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload PPT</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-image: url('/static/images/background.png');
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background-color: #C8A2C8 ;
+      padding: 4rem; /* Increased padding */
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      width: 90%;
+      max-width: 600px; /* Increased width */
+    }
+
+    h1 {
+      margin-bottom: 2rem;
+      font-size: 2.5rem; /* Increased font size */
+      color: #333;
+    }
+
+    .box {
+      background-color: #E6E6FA;
+      padding: 2rem; /* Increased padding */
+      border-radius: 5px;
+      margin-bottom: 2rem;
+    }
+
+    input[type="file"] {
+      margin: 1rem 0;
+      padding: 1rem; /* Increased padding */
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      width: 100%;
+      font-size: 1.25rem; /* Increased font size */
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: #089cdc;
+      color: white;
+      padding: 1rem; /* Increased padding */
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 1.5rem; /* Increased font size */
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="box">
+      <h1>Welcome to GestureDeck</h1>
+      <p>Upload and control your PPTs with ease!</p>
+    </div>
+    <form action="/" method="post" enctype="multipart/form-data">
+      <input type="file" name="file" accept=".ppt,.pptx" required>
+      <button type="submit">Upload</button>
+    </form>
+  </div>
+</body>
+</html>
